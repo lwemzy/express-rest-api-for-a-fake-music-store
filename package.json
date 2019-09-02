@@ -1,0 +1,16 @@
+{
+  "name": "musicapisql",
+  "version": "1.0.0",
+  "description": "demo online music platform",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Mukasa Alex Lwembawo",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "mariadb": "^2.1.0",
+    "sequelize": "^5.18.0"
+  }
+}

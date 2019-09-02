@@ -1,0 +1,29 @@
+{
+  "development": {
+    "username": "root",
+    "password": "123@keller",
+    "database": "musicApi",
+    "host": "127.0.0.1",
+    "dialect": "mariadb",
+    "operatorsAliases": false,
+    "dialectOptions": {
+      "timezone": "Etc/GMT0"
+    }
+  },
+  "test": {
+    "username": "root",
+    "password": null,
+    "database": "database_test",
+    "host": "127.0.0.1",
+    "dialect": "mariadb",
+    "operatorsAliases": false
+  },
+  "production": {
+    "username": "root",
+    "password": null,
+    "database": "database_production",
+    "host": "127.0.0.1",
+    "dialect": "mysql",
+    "operatorsAliases": false
+  }
+}
