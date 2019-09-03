@@ -15,7 +15,7 @@ module.exports = (sequelize, DataTypes) => {
     artist.belongsToMany(models.album, {
       through: 'albumCollab',
       foreignKey: 'artistId',
-      as: 'artists'
+      as: 'albums'
     });
   };
   return artist;
