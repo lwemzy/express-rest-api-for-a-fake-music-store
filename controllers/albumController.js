@@ -14,7 +14,7 @@ exports.createAlbum = async (req, res, next) => {
       const artist = await Artist.findByPk(item.id);
       console.log(artist);
       if (!artist) {
-        return res.status(400).json({
+        return res.status(404).json({
           status: 'Fail',
           message: "Artist doesn't exist"
         });
@@ -31,7 +31,7 @@ exports.createAlbum = async (req, res, next) => {
         { returning: true }
       );
 
-      return res.status(200).json({
+      return res.status(201).json({
         status: 'success',
         data: {
           data: newCollaboration
@@ -39,7 +39,7 @@ exports.createAlbum = async (req, res, next) => {
       });
     }
   } catch (error) {
-    res.status(201).json({
+    res.status(500).json({
       status: 'Fail',
       message: error
     });
@@ -67,7 +67,7 @@ exports.allAlbums = async (req, res, next) => {
       }
     });
   } catch (error) {
-    res.status(201).json({
+    res.status(500).json({
       status: 'Fail',
       message: error
     });
@@ -97,7 +97,7 @@ exports.updateAlbums = async (req, res, next) => {
         where: { id: req.params.id }
       });
 
-      return res.status(200).json({
+      return res.status(202).json({
         status: 'success',
         data: {
           data: updatedAlbum
@@ -105,7 +105,7 @@ exports.updateAlbums = async (req, res, next) => {
       });
     }
   } catch (error) {
-    res.status(201).json({
+    res.status(500).json({
       status: 'Fail',
       message: error
     });
@@ -127,12 +127,12 @@ exports.deleteAlbum = async (req, res, next) => {
       }
     });
 
-    res.status(204).json({
+    res.status(202).json({
       status: 'success',
       data: null
     });
   } catch (error) {
-    res.status(201).json({
+    res.status(500).json({
       status: 'Fail',
       message: error
     });

@@ -4,14 +4,14 @@ exports.addArtist = async (req, res, next) => {
   try {
     const newArtist = await Artist.create(req.body);
 
-    res.status(200).json({
+    res.status(201).json({
       status: 'success',
       data: {
         data: newArtist
       }
     });
   } catch (error) {
-    res.status(201).json({
+    res.status(500).json({
       status: 'Fail',
       message: error
     });
@@ -28,7 +28,7 @@ exports.findAllArtist = async (req, res, next) => {
       }
     });
   } catch (error) {
-    res.status(201).json({
+    res.status(500).json({
       status: 'Fail',
       message: error
     });
@@ -41,14 +41,14 @@ exports.updateArtist = async (req, res, next) => {
       where: { id: req.params.id }
     });
 
-    res.status(200).json({
+    res.status(202).json({
       status: 'success',
       data: {
         data: patchedArtist
       }
     });
   } catch (error) {
-    res.status(201).json({
+    res.status(500).json({
       status: 'Fail',
       message: error
     });
@@ -63,7 +63,7 @@ exports.deleteArtist = async (req, res, next) => {
       data: null
     });
   } catch (error) {
-    res.status(201).json({
+    res.status(500).json({
       status: 'Fail',
       message: error
     });
