@@ -9,6 +9,7 @@ app
   .get(albumController.allAlbums);
 app
   .route('/:id')
+  .get(albumController.findAlbum)
   .patch(albumController.updateAlbums)
   .delete(albumController.deleteAlbum);
 

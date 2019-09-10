@@ -21,7 +21,7 @@ module.exports = (sequelize, DataTypes) => {
         }
       },
       password: {
-        type: DataTypes.TEXT,
+        type: DataTypes.STRING,
         allowNull: false,
         validate: {
           min: {
@@ -30,6 +30,10 @@ module.exports = (sequelize, DataTypes) => {
           }
         }
       },
+      // passwordConfirm: {
+      //   type: DataTypes.STRING,
+      //   allowNull: false
+      // },
       passwordChangedAt: DataTypes.DATE,
       passwordResetToken: DataTypes.STRING,
       passwordResetExpires: DataTypes.DATE,
@@ -39,20 +43,28 @@ module.exports = (sequelize, DataTypes) => {
       }
     },
     {
-      instanceMethods: {
-        validPassword: function(password) {
-          return bcrypt.compare(password, this.password);
-        }
-      }
+      // instanceMethods: {
+      //   validPassword: async function(password) {
+      //     return await bcrypt.compare(password, this.password);
+      //   }
+      // }
     }
   );
   user.associate = function(models) {
     // associations can be defined here
   };
 
-  user.beforeCreate(async function(user, options) {
-    user.password = await bcrypt.hash(user.password, 8);
+  user.beforeCreate(async function(userpass, options) {
+    // this.removeAttribute('passwordConfirm');
+    userpass.password = await bcrypt.hash(userpass.password, 12);
   });
+
+  // instance methonds are defined using prototype
+  // to avoid bugs from sequelize
+  user.prototype.validPassword = async function(password) {
+    return await bcrypt.compare(password, this.password);
+  };
+
   return user;
 };
 
