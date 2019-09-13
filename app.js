@@ -5,17 +5,14 @@ const artistRouter = require('./routes/artistRoute');
 const albumRouter = require('./routes/albumRoute');
 const userRouter = require('./routes/userRoute');
 const morgan = require('morgan');
-const dotenv = require('dotenv');
 const globalErrorHandler = require('./utils/globalErrorHandler');
 const globalErrorHandlerController = require('./controllers/errorController');
 
-dotenv.config({
-  path: './config.env'
-});
+// morgan logging middleware
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
 
-const port = process.env.PORT || 3001;
-
-app.use(morgan(process.env.MODE_ENV));
 app.use(express.json());
 
 app.use('/musicApi/v1/artist', artistRouter);
@@ -30,6 +27,4 @@ app.all('*', (req, res, next) => {
 
 app.use(globalErrorHandlerController);
 
-app.listen(port, () => {
-  console.log(`Application runing on port ${port}`);
-});
+module.exports = app;
