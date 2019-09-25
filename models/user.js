@@ -65,6 +65,17 @@ module.exports = (sequelize, DataTypes) => {
     return await bcrypt.compare(password, this.password);
   };
 
+  user.prototype.changedPasswordAfter = function(JWTtimestamp) {
+    if (this.passwordChangedAt) {
+      const changeTimestamp = parseInt(
+        this.passwordChangedAt.getTime() / 1000,
+        10
+      );
+      return JWTtimestamp < changeTimestamp;
+    }
+    return false;
+  };
+
   return user;
 };
 

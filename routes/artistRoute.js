@@ -8,6 +8,7 @@ app
   .get(artistController.findAllArtist);
 app
   .route('/:id')
+  .get(artistController.findArtist)
   .patch(artistController.updateArtist)
   .delete(artistController.deleteArtist);
 

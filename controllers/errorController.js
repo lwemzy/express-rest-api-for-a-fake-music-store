@@ -42,6 +42,13 @@ const validationErrorHandler = error => {
   return new globalErrorHandler(message.join(', '), 400);
 };
 
+// handling jwt token errors
+
+const invalidTokenHandler = () =>
+  new globalErrorHandler(`Invalid JWT token`, 401);
+
+const tokenExpiredHandler = () => new globalErrorHandler(`Expired Token`, 401);
+
 module.exports = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
@@ -54,6 +61,9 @@ module.exports = (err, req, res, next) => {
       error = unquieConstraintErrorHandler(error);
     if (error.name === 'SequelizeValidationError')
       error = validationErrorHandler(error);
+
+    if (error.name === 'JsonWebTokenError') error = invalidTokenHandler();
+    if (error.name === 'TokenExpiredError') error = tokenExpiredHandler();
 
     handleErrorProd(error, res);
   }

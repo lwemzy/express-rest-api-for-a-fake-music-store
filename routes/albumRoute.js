@@ -2,11 +2,12 @@ const express = require('express');
 const app = express();
 
 const albumController = require('../controllers/albumController');
+const authController = require('../controllers/authController');
 
 app
   .route('/')
   .post(albumController.createAlbum)
-  .get(albumController.allAlbums);
+  .get(authController.protect, albumController.allAlbums);
 app
   .route('/:id')
   .get(albumController.findAlbum)

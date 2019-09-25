@@ -1,5 +1,6 @@
 const User = require('../models').user;
 const jwt = require('jsonwebtoken');
+const { promisify } = require('util');
 const catchAsync = require('../utils/cathcAsyncHandler');
 const globalErrorHandler = require('../utils/globalErrorHandler');
 
@@ -47,4 +48,50 @@ exports.login = catchAsync(async (req, res, next) => {
     status: 'success',
     token
   });
+});
+
+// protection middleware
+exports.protect = catchAsync(async (req, res, next) => {
+  // TODO
+
+  // Get Token and check if its there
+  let token;
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer') // Get Token and check if its theretsWith('Bearer')
+  ) {
+    token = req.headers.authorization.split(' ')[1];
+  }
+
+  if (!token) {
+    return next(new globalErrorHandler(`You are not logged in`, 401));
+  }
+
+  // verify Token
+  const decodedToken = await promisify(jwt.verify)(
+    token,
+    process.env.JWT_SECRET
+  );
+
+  console.log(decodedToken);
+
+  // check if user still exists
+  const verifiedUser = await User.findByPk(decodedToken.id);
+  if (!verifiedUser) {
+    return next(new globalErrorHandler(`User nolonger exists`, 401));
+  }
+
+  // check if user changed password after token issue
+  if (verifiedUser.changedPasswordAfter(decodedToken.iat)) {
+    return next(
+      new globalErrorHandler(
+        `User Changed Password, Log in with new password`,
+        401
+      )
+    );
+  }
+
+  // grant acess to the protected route
+  req.user = verifiedUser;
+  next();
 });

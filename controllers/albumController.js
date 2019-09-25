@@ -3,114 +3,61 @@ const Artist = require('../models').artist;
 const AlbumCollab = require('../models').albumCollab;
 const catchAsync = require('../utils/cathcAsyncHandler');
 const globalErrorHandler = require('../utils/globalErrorHandler');
+const Factory = require('./modelFactory');
 
-exports.createAlbum = catchAsync(async (req, res, next) => {
-  const newAlbum = await Album.create(req.body, { w: 1 }, { returning: true });
+exports.createAlbum = Factory.newManyToManyItem(Album, Artist, AlbumCollab, {
+  artistId: 0,
+  albumId: 0,
+  bodyParam: 'artists'
+});
 
-  for (let item of req.body.artists) {
-    const artist = await Artist.findByPk(item.id);
-    console.log(artist);
-    if (!artist) {
-      return res.status(404).json({
-        status: 'Fail',
-        message: "Artist doesn't exist"
-      });
+exports.allAlbums = Factory.allItems(Album, {
+  include: {
+    model: Artist,
+    as: 'artists',
+    required: false,
+    through: {
+      model: AlbumCollab,
+      as: 'collabrations'
     }
-
-    const collabrationObject = {
-      artistId: item.id,
-      albumId: newAlbum.id
-    };
-
-    const newCollaboration = await AlbumCollab.create(
-      collabrationObject,
-      { w: 1 },
-      { returning: true }
-    );
-
-    return res.status(201).json({
-      status: 'success',
-      data: {
-        data: newCollaboration
-      }
-    });
   }
 });
 
-exports.allAlbums = catchAsync(async (req, res, next) => {
-  const albums = await Album.findAll({
-    include: {
-      model: Artist,
-      as: 'artists',
-      required: false,
-      through: {
-        model: AlbumCollab,
-        as: 'collabrations'
-      }
+exports.findAlbum = Factory.findItem(Album, {
+  include: {
+    model: Artist,
+    as: 'artists',
+    required: false,
+    through: {
+      model: AlbumCollab,
+      as: 'collabrations'
     }
-  });
-
-  res.status(200).json({
-    status: 'Success',
-    data: {
-      data: albums
-    }
-  });
-});
-
-exports.findAlbum = catchAsync(async (req, res, next) => {
-  const album = await Album.findByPk(req.params.id, {
-    include: {
-      model: Artist,
-      as: 'artists',
-      required: false,
-      through: {
-        model: AlbumCollab,
-        as: 'collabrations'
-      }
-    }
-  });
-  if (!album) {
-    return next(new globalErrorHandler(`No album found`, 404));
   }
-
-  res.status(200).json({
-    status: 'Success',
-    data: {
-      data: album
-    }
-  });
 });
 
 exports.updateAlbums = catchAsync(async (req, res, next) => {
   const album = await Album.findByPk(req.params.id);
   // remove all artist associations
   const artists = await album.getArtists();
-  album.removeArtists(artists);
+  await album.removeArtists(artists);
 
   for (let item of req.body.artists) {
     const collabrationObject = {
       artistId: item.id,
       albumId: album.id
     };
-
-    const newCollaboration = await AlbumCollab.create(
-      collabrationObject,
-      { w: 1 },
-      { returning: true }
-    );
-
+    const newCollaboration = await AlbumCollab.create(collabrationObject);
     const updatedAlbum = await Album.update(req.body, {
       where: { id: req.params.id }
     });
-
-    return res.status(202).json({
-      status: 'success',
-      data: {
-        data: updatedAlbum
-      }
-    });
   }
+
+  return res.status(202).json({
+    status: 'success',
+    data: {
+      data: album
+    }
+  });
 });
 
 exports.deleteAlbum = catchAsync(async (req, res, next) => {
@@ -118,7 +65,7 @@ exports.deleteAlbum = catchAsync(async (req, res, next) => {
   const album = await Album.findByPk(req.params.id);
   // remove all artist associations
   const artists = await album.getArtists();
-  album.removeArtists(artists);
+  await album.removeArtists(artists);
 
   // delete album
   const deletedAlbum = await album.destroy({
@@ -126,6 +73,10 @@ exports.deleteAlbum = catchAsync(async (req, res, next) => {
       id: req.params.id
     }
   });
+
+  if (!deletedAlbum) {
+    return next(new globalErrorHandler(`No Album with that id`, 404));
+  }
 
   res.status(202).json({
     status: 'success',
