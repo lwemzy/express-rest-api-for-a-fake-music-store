@@ -6,7 +6,11 @@ const authController = require('../controllers/authController');
 
 app
   .route('/')
-  .post(albumController.createAlbum)
+  .post(
+    authController.protect,
+    albumController.uploadAlbumArt,
+    albumController.createAlbum
+  )
   .get(authController.protect, albumController.allAlbums);
 app
   .route('/:id')

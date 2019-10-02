@@ -73,8 +73,6 @@ exports.protect = catchAsync(async (req, res, next) => {
     process.env.JWT_SECRET
   );
 
-  console.log(decodedToken);
-
   // check if user still exists
   const verifiedUser = await User.findByPk(decodedToken.id);
   if (!verifiedUser) {
@@ -95,3 +93,19 @@ exports.protect = catchAsync(async (req, res, next) => {
   req.user = verifiedUser;
   next();
 });
+
+// user permission or roles
+// takes in roles has an array
+exports.restrictTo = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return next(
+        new globalErrorHandler(
+          `You dont't have permission to perform this action`,
+          403
+        )
+      );
+    }
+    next();
+  };
+};

@@ -3,7 +3,10 @@ const Artist = require('../models').artist;
 const AlbumCollab = require('../models').albumCollab;
 const catchAsync = require('../utils/cathcAsyncHandler');
 const globalErrorHandler = require('../utils/globalErrorHandler');
+const FileUpdload = require('../utils/fileUpdload');
 const Factory = require('./modelFactory');
+
+exports.uploadAlbumArt = FileUpdload.upload.single('albumArt');
 
 exports.createAlbum = Factory.newManyToManyItem(Album, Artist, AlbumCollab, {
   artistId: 0,

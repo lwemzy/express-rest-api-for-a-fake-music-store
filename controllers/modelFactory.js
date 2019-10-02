@@ -15,6 +15,8 @@ exports.newItem = model =>
 
 exports.newManyToManyItem = (model, model2, throughModel, options) =>
   catchAsync(async (req, res, next) => {
+    if (req.file) req.body.albumArt = req.file.filename;
+
     const newItem = await model.create(req.body);
 
     for (let item of req.body[options.bodyParam]) {
