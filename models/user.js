@@ -52,6 +52,7 @@ module.exports = (sequelize, DataTypes) => {
   );
   user.associate = function(models) {
     // associations can be defined here
+    user.hasMany(models.songreview, { as: 'reviews' });
   };
 
   user.beforeCreate(async function(userpass, options) {
@@ -65,6 +66,7 @@ module.exports = (sequelize, DataTypes) => {
     return await bcrypt.compare(password, this.password);
   };
 
+  // check if the password was changed
   user.prototype.changedPasswordAfter = function(JWTtimestamp) {
     if (this.passwordChangedAt) {
       const changeTimestamp = parseInt(

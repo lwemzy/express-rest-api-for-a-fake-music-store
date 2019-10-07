@@ -1,6 +1,9 @@
 const catchAsync = require('../utils/cathcAsyncHandler');
 const globalErrorHandler = require('../utils/globalErrorHandler');
 
+// TODO
+// Change This Whole Logic in a factory design pattern
+
 exports.newItem = model =>
   catchAsync(async (req, res, next) => {
     const newData = await model.create(req.body);
@@ -64,6 +67,13 @@ exports.findItem = (model, options = {}) =>
 
 exports.allItems = (model, options = {}) =>
   catchAsync(async (req, res, next) => {
+    // TODO
+    // check if album exists
+    // then perform this query
+    if (req.params.albumId) {
+      // options = { where: { albumId: req.params.albumId }, include: ['album'] };
+      options = { where: { albumId: req.params.albumId } };
+    }
     const allItems = await model.findAll(options);
     res.status(200).json({
       status: 'success',

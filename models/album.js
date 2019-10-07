@@ -12,6 +12,7 @@ module.exports = (sequelize, DataTypes) => {
   );
   album.associate = function(models) {
     // associations can be defined here
+    album.hasMany(models.song, { as: 'songs' });
     album.belongsToMany(models.artist, {
       through: 'albumCollab',
       foreignKey: 'albumId',

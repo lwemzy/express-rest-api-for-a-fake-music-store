@@ -3,6 +3,10 @@ const app = express();
 
 const albumController = require('../controllers/albumController');
 const authController = require('../controllers/authController');
+const songRouter = require('./songRoute');
+
+// nested route
+app.use('/:albumId/song', songRouter);
 
 app
   .route('/')

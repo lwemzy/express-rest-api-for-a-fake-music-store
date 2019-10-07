@@ -1,5 +1,4 @@
 const Artist = require('../models').artist;
-const catchAsync = require('../utils/cathcAsyncHandler');
 const Factory = require('./modelFactory');
 
 exports.addArtist = Factory.newItem(Artist);
