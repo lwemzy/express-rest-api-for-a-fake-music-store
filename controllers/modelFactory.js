@@ -70,6 +70,7 @@ exports.allItems = (model, options = {}) =>
     // TODO
     // check if album exists
     // then perform this query
+    // implementing an nested get
     if (req.params.albumId) {
       // options = { where: { albumId: req.params.albumId }, include: ['album'] };
       options = { where: { albumId: req.params.albumId } };

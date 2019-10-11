@@ -1,8 +1,8 @@
-const Review = require('../models').songreview;
+const { songreview } = require('../models');
 const Factory = require('./modelFactory');
 
-exports.addReview = Factory.newItem(Review);
-exports.findReview = Factory.findItem(Review);
-exports.findAllReview = Factory.allItems(Review);
-exports.updateReview = Factory.updateItem(Review);
-exports.deleteReview = Factory.deleteItem(Review);
+exports.addReview = Factory.newItem(songreview);
+exports.findReview = Factory.findItem(songreview);
+exports.findAllReview = Factory.allItems(songreview);
+exports.updateReview = Factory.updateItem(songreview);
+exports.deleteReview = Factory.deleteItem(songreview);

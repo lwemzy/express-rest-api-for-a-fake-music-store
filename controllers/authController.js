@@ -1,11 +1,11 @@
-const User = require('../models').user;
+const { user } = require('../models');
 const jwt = require('jsonwebtoken');
 const { promisify } = require('util');
 const catchAsync = require('../utils/cathcAsyncHandler');
 const globalErrorHandler = require('../utils/globalErrorHandler');
 
 exports.signup = catchAsync(async (req, res, next) => {
-  const newUser = await User.create(req.body);
+  const newUser = await user.create({ ...req.body, isActive: true });
 
   // create a jwt token and send it to the user
   const token = jwt.sign({ id: newUser.id }, process.env.JWT_SECRET, {
@@ -14,10 +14,10 @@ exports.signup = catchAsync(async (req, res, next) => {
 
   res.status(201).json({
     status: 'success',
-    token,
-    data: {
-      data: newUser
-    }
+    token
+    // data: {
+    //   data: newUser
+    // }
   });
 });
 
@@ -34,13 +34,13 @@ exports.login = catchAsync(async (req, res, next) => {
     );
   }
 
-  const user = await User.findOne({ where: { email } });
+  const User = await user.findOne({ where: { email } });
 
-  if (!user || !(await user.validPassword(password))) {
+  if (!User || !(await User.validPassword(password))) {
     return next(new globalErrorHandler(`Invalid email or password`, 401));
   }
 
-  const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+  const token = jwt.sign({ id: User.id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN
   });
 
@@ -74,7 +74,7 @@ exports.protect = catchAsync(async (req, res, next) => {
   );
 
   // check if user still exists
-  const verifiedUser = await User.findByPk(decodedToken.id);
+  const verifiedUser = await user.findByPk(decodedToken.id);
   if (!verifiedUser) {
     return next(new globalErrorHandler(`User nolonger exists`, 401));
   }
