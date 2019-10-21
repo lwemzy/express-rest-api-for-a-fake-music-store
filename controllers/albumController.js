@@ -1,4 +1,4 @@
-const { albumCollab, artist, album } = require('../models');
+const { albumCollab, artist, album, song } = require('../models');
 const catchAsync = require('../utils/cathcAsyncHandler');
 const globalErrorHandler = require('../utils/globalErrorHandler');
 const FileUpdload = require('../utils/fileUpdload');
@@ -44,15 +44,22 @@ exports.allAlbums = Factory.allItems(album, {
 });
 
 exports.findAlbum = Factory.findItem(album, {
-  include: {
-    model: artist,
-    as: 'artists',
-    required: false,
-    through: {
-      model: albumCollab,
-      as: 'collabrations'
+  include: [
+    {
+      model: song,
+      as: 'songs',
+      required: true
+    },
+    {
+      model: artist,
+      as: 'artists',
+      required: false,
+      through: {
+        model: albumCollab,
+        as: 'collabrations'
+      }
     }
-  }
+  ]
 });
 
 exports.updateAlbums = catchAsync(async (req, res, next) => {

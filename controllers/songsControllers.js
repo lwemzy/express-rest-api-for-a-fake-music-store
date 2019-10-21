@@ -1,4 +1,4 @@
-const { song, album } = require('../models');
+const { song, album, genre } = require('../models');
 const Factory = require('./modelFactory');
 const catchAsync = require('../utils/cathcAsyncHandler');
 const globalErrorHandler = require('../utils/globalErrorHandler');
@@ -28,7 +28,21 @@ exports.setAlbumIds = catchAsync(async (req, res, next) => {
 });
 
 exports.addSong = Factory.newItem(song);
-exports.findSong = Factory.findItem(song);
-exports.findAllSong = Factory.allItems(song);
+exports.findSong = Factory.findItem(song, {
+  attributes: ['id', 'albumId', 'title', 'artist', 'composer', 'year'],
+  include: {
+    model: genre,
+    as: 'genre',
+    attributes: ['id', 'type']
+  }
+});
+exports.findAllSong = Factory.allItems(song, {
+  attributes: ['id', 'albumId', 'title', 'artist', 'composer', 'year'],
+  include: {
+    model: genre,
+    as: 'genre',
+    attributes: ['type']
+  }
+});
 exports.updateSong = Factory.updateItem(song);
 exports.deleteSong = Factory.deleteItem(song);
