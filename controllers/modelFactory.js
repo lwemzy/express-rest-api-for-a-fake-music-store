@@ -2,9 +2,6 @@ const catchAsync = require('../utils/cathcAsyncHandler');
 const globalErrorHandler = require('../utils/globalErrorHandler');
 const { Op } = require('sequelize');
 
-// TODO
-// Change This Whole Logic in a factory design pattern
-
 exports.newItem = model =>
   catchAsync(async (req, res, next) => {
     const newData = await model.create(req.body);
@@ -70,7 +67,7 @@ exports.allItems = (model, options = {}) =>
   catchAsync(async (req, res, next) => {
     let querryParams = { ...options };
     const querryObj = { ...req.query };
-    const excludedFields = ['sort', 'page', 'limits', 'fields', 'order'];
+    const excludedFields = ['sort', 'page', 'limit', 'fields', 'order'];
     excludedFields.forEach(el => delete querryObj[el]);
 
     // let querryString = JSON.stringify(querryObj);
@@ -117,19 +114,36 @@ exports.allItems = (model, options = {}) =>
 
     querryParams.where = querryObj;
 
+    // sorting
     // ?order[]=firstName&order[]=DESC
     if (req.query.order) {
       querryParams.order = [[...req.query.order]];
+    } else {
+      querryParams.order = [['createdAt', 'DESC']];
     }
 
-    console.log(querryParams);
-    const Items = await model.findAll({
+    // field limiting
+    if (req.query.fields) {
+      const fieldArray = req.query.fields.split(',');
+      querryParams.attributes = fieldArray;
+    }
+
+    // pagination
+    if (req.query.limit && req.query.page) {
+      const limit = req.query.limit * 1 || 1;
+      const page = req.query.page * 1 || 10;
+      const offset = (page - 1) * limit;
+      querryParams = { ...querryParams, offset, limit };
+    }
+
+    const Items = await model.findAndCountAll({
       ...querryParams
     });
-
+    if (!!!Items.rows.length) {
+      return next(new globalErrorHandler(`💥 page doesn't exist`, 404));
+    }
     res.status(200).json({
       status: 'success',
-      results: Items.length,
       data: {
         data: Items
       }

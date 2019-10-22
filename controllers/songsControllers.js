@@ -46,3 +46,6 @@ exports.findAllSong = Factory.allItems(song, {
 });
 exports.updateSong = Factory.updateItem(song);
 exports.deleteSong = Factory.deleteItem(song);
+
+// { where: { attributes: 'firstName,lastName,dob' },
+//   attributes: [ 'firstName', 'lastName', 'dob' ] }
