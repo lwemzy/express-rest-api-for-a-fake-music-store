@@ -1,9 +1,10 @@
 const { albumCollab, artist, album, song } = require('../models');
 const catchAsync = require('../utils/cathcAsyncHandler');
-const globalErrorHandler = require('../utils/globalErrorHandler');
+const GlobalErrorHandler = require('../utils/globalErrorHandler');
 const FileUpdload = require('../utils/fileUpdload');
 const Factory = require('./modelFactory');
 
+// File Upload
 exports.uploadAlbumArt = FileUpdload.upload.single('albumArt');
 
 exports.setArtistIds = catchAsync(async (req, res, next) => {
@@ -12,7 +13,7 @@ exports.setArtistIds = catchAsync(async (req, res, next) => {
 
   if (!Artist) {
     return next(
-      new globalErrorHandler(
+      new GlobalErrorHandler(
         `There's is no artist with id ${req.params.artistId}`,
         404
       )
@@ -62,22 +63,45 @@ exports.findAlbum = Factory.findItem(album, {
   ]
 });
 
+const collabUpdate = async (item, Album) => {
+  // if its a new collabrating artist create one
+  //  await albumCollab.findOrCreate({
+  //   where: { artistId: item.id, albumId: Album.id }
+  // });
+
+  // // else update existing artist
+  // await albumCollab.update(
+  //   {
+  //     ...Album,
+  //     artistId: item.id,
+  //     albumId: Album.id
+  //   },
+  //   {
+  //     ...Album,
+  //     where: {
+  //       artistId: item.id,
+  //       albumId: Album.id
+  //     }
+  //   }
+  // );
+  await albumCollab.create({
+    ...Album,
+    artistId: item.id,
+    albumId: Album.id
+  });
+};
+
 exports.updateAlbums = catchAsync(async (req, res, next) => {
   const Album = await album.findByPk(req.params.id);
   // remove all artist associations
   const Artists = await Album.getArtists();
   await Album.removeArtists(Artists);
 
-  for (let item of req.body.artists) {
-    const collabrationObject = {
-      artistId: item.id,
-      albumId: album.id
-    };
-    const newCollaboration = await albumCollab.create(collabrationObject);
-    const updatedAlbum = await album.update(req.body, {
-      where: { id: req.params.id }
-    });
-  }
+  req.body.artists.map(item => collabUpdate(item, Album));
+
+  await album.update(req.body, {
+    where: { id: req.params.id }
+  });
 
   return res.status(202).json({
     status: 'success',
@@ -92,17 +116,18 @@ exports.deleteAlbum = catchAsync(async (req, res, next) => {
   const Album = await album.findByPk(req.params.id);
   // remove all artist associations
   const Artists = await Album.getArtists();
-  await Album.removeArtists(Artists);
+  if (Artists) await Album.removeArtists(Artists);
 
   // delete album
-  const deletedAlbum = await Album.destroy({
-    where: {
-      id: req.params.id
+  if (Album) {
+    const deletedAlbum = await Album.destroy({
+      where: {
+        id: req.params.id
+      }
+    });
+    if (!deletedAlbum) {
+      return next(new GlobalErrorHandler(`No Album with that id`, 404));
     }
-  });
-
-  if (!deletedAlbum) {
-    return next(new globalErrorHandler(`No Album with that id`, 404));
   }
 
   res.status(202).json({

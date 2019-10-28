@@ -1,8 +1,8 @@
-const { user } = require('../models');
-const jwt = require('jsonwebtoken');
 const { promisify } = require('util');
+const jwt = require('jsonwebtoken');
+const { user } = require('../models');
 const catchAsync = require('../utils/cathcAsyncHandler');
-const globalErrorHandler = require('../utils/globalErrorHandler');
+const GlobalErrorHandler = require('../utils/globalErrorHandler');
 
 exports.signup = catchAsync(async (req, res, next) => {
   const newUser = await user.create({ ...req.body, isActive: true });
@@ -30,14 +30,14 @@ exports.login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return next(
-      new globalErrorHandler('Please Provide email and password to login', 403)
+      new GlobalErrorHandler('Please Provide email and password to login', 403)
     );
   }
 
   const User = await user.findOne({ where: { email } });
 
   if (!User || !(await User.validPassword(password))) {
-    return next(new globalErrorHandler(`Invalid email or password`, 401));
+    return next(new GlobalErrorHandler(`Invalid email or password`, 401));
   }
 
   const token = jwt.sign({ id: User.id }, process.env.JWT_SECRET, {
@@ -64,7 +64,7 @@ exports.protect = catchAsync(async (req, res, next) => {
   }
 
   if (!token) {
-    return next(new globalErrorHandler(`You are not logged in`, 401));
+    return next(new GlobalErrorHandler(`You are not logged in`, 401));
   }
 
   // verify Token
@@ -76,13 +76,13 @@ exports.protect = catchAsync(async (req, res, next) => {
   // check if user still exists
   const verifiedUser = await user.findByPk(decodedToken.id);
   if (!verifiedUser) {
-    return next(new globalErrorHandler(`User nolonger exists`, 401));
+    return next(new GlobalErrorHandler(`User nolonger exists`, 401));
   }
 
   // check if user changed password after token issue
   if (verifiedUser.changedPasswordAfter(decodedToken.iat)) {
     return next(
-      new globalErrorHandler(
+      new GlobalErrorHandler(
         `User Changed Password, Log in with new password`,
         401
       )
@@ -95,12 +95,11 @@ exports.protect = catchAsync(async (req, res, next) => {
 });
 
 // user permission or roles
-// takes in roles has an array
 exports.restrictTo = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
       return next(
-        new globalErrorHandler(
+        new GlobalErrorHandler(
           `You dont't have permission to perform this action`,
           403
         )

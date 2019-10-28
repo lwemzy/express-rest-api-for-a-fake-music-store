@@ -1,6 +1,10 @@
 const express = require('express');
+
+const app = express.Router({ mergeParams: true });
 const songReview = require('../controllers/songReviewController');
-const app = express();
+
+// TODO
+// add post route for creating reviews on songs
 
 app
   .route('/')

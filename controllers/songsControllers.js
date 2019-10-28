@@ -1,7 +1,7 @@
 const { song, album, genre } = require('../models');
 const Factory = require('./modelFactory');
 const catchAsync = require('../utils/cathcAsyncHandler');
-const globalErrorHandler = require('../utils/globalErrorHandler');
+const GlobalErrorHandler = require('../utils/globalErrorHandler');
 
 // nested post end point
 // allow nested routes
@@ -14,7 +14,7 @@ exports.setAlbumIds = catchAsync(async (req, res, next) => {
 
   if (!albumItem) {
     return next(
-      new globalErrorHandler(
+      new GlobalErrorHandler(
         `There's is no album with id ${req.params.albumId}`,
         404
       )

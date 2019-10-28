@@ -1,6 +1,30 @@
-const catchAsync = require('../utils/cathcAsyncHandler');
-const globalErrorHandler = require('../utils/globalErrorHandler');
 const { Op } = require('sequelize');
+const catchAsync = require('../utils/cathcAsyncHandler');
+const GlobalErrorHandler = require('../utils/globalErrorHandler');
+
+const mapManyToMany = async obj => {
+  const { item, model, throughModel, model2, options, newItem, next } = {
+    ...obj
+  };
+  const artist = await model2.findByPk(item.id);
+  if (!artist) {
+    await model.destroy({ where: { id: newItem.id } });
+    return next(new GlobalErrorHandler(`Artist doesnt exist`, 404));
+  }
+
+  const keys = Object.keys(options);
+  options[keys[0]] = item.id;
+  options[keys[1]] = newItem.id;
+
+  delete options.bodyParam;
+  const linkData = await throughModel.create(options);
+  if (!linkData) {
+    await model.destroy({ where: { id: newItem.id } });
+    return next(
+      new GlobalErrorHandler(`Failed to create collaboration data`, 406)
+    );
+  }
+};
 
 exports.newItem = model =>
   catchAsync(async (req, res, next) => {
@@ -20,25 +44,18 @@ exports.newManyToManyItem = (model, model2, throughModel, options) =>
 
     const newItem = await model.create(req.body);
 
-    for (let item of req.body[options.bodyParam]) {
-      const artist = await model2.findByPk(item.id);
-      if (!artist) {
-        await model.destroy({ where: { id: newItem.id } });
-        return next(new globalErrorHandler(`Artist doesnt exist`, 404));
-      }
-
-      const keys = Object.keys(options);
-      options[keys[0]] = item.id;
-      options[keys[1]] = newItem.id;
-
-      delete options.bodyParam;
-      const linkData = await throughModel.create(options);
-      if (!linkData) {
-        await model.destroy({ where: { id: newItem.id } });
-        return next(
-          new globalErrorHandler(`Failed to create collaboration data`, 406)
-        );
-      }
+    if (newItem) {
+      req.body[options.bodyParam].map(item =>
+        mapManyToMany({
+          item,
+          model,
+          throughModel,
+          model2,
+          options,
+          newItem,
+          next
+        })
+      );
     }
 
     return res.status(201).json({
@@ -53,7 +70,7 @@ exports.findItem = (model, options = {}) =>
   catchAsync(async (req, res, next) => {
     const item = await model.findByPk(req.params.id, options);
     if (!item) {
-      return next(new globalErrorHandler(`No Item found`, 404));
+      return next(new GlobalErrorHandler(`No Item found`, 404));
     }
     res.status(200).json({
       status: 'success',
@@ -77,11 +94,16 @@ exports.allItems = (model, options = {}) =>
     // );
     // const filter = JSON.parse(querryString);
 
+    // implementing nested routing
     if (req.params.albumId) {
       querryParams.where = { albumId: req.params.albumId, ...querryObj };
+    } else if (req.params.songId) {
+      querryParams.where = { songId: req.params.songId, ...querryObj };
     } else {
-      querryParams.where = querryObj;
+      Object.assign(querryParams.where, querryObj);
     }
+
+    // console.log(querryParams);
 
     // sequelize advanced search filter
     // for gt gte lt lte
@@ -92,7 +114,7 @@ exports.allItems = (model, options = {}) =>
       // TODO
       // Refactor to function
       // copy query object
-      let OBJ = Object.values(querryObj[el]);
+      const OBJ = Object.values(querryObj[el]);
       if (typeof querryObj[el] === 'object') {
         Object.keys(querryObj[el]).forEach((val, index) => {
           if (val === 'gt') {
@@ -112,7 +134,9 @@ exports.allItems = (model, options = {}) =>
       }
     });
 
-    querryParams.where = querryObj;
+    Object.assign(querryParams.where, querryObj);
+
+    // querryParams.where = querryObj;
 
     // sorting
     // ?order[]=firstName&order[]=DESC
@@ -139,9 +163,11 @@ exports.allItems = (model, options = {}) =>
     const Items = await model.findAndCountAll({
       ...querryParams
     });
-    if (!!!Items.rows.length) {
-      return next(new globalErrorHandler(`💥 page doesn't exist`, 404));
-    }
+
+    // if (!!!Items.rows.length) {
+    //   return next(new GlobalErrorHandler(`💥 page doesn't exist`, 404));
+    // }
+
     res.status(200).json({
       status: 'success',
       data: {
@@ -168,7 +194,7 @@ exports.deleteItem = model =>
   catchAsync(async (req, res, next) => {
     const deletedItem = await model.destroy({ where: { id: req.params.id } });
     if (!deletedItem) {
-      return next(new globalErrorHandler(`No Item found with that id`, 404));
+      return next(new GlobalErrorHandler(`No Item found with that id`, 404));
     }
     res.status(204).json({
       status: 'success',

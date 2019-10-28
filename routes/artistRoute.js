@@ -1,8 +1,8 @@
 const express = require('express');
-const app = express.Router();
 
+const app = express.Router();
 const artistController = require('../controllers/artistController');
-const albumRoute = require('./albumRoute');
+// const albumRoute = require('./albumRoute');
 
 // app.use('/:artistId/albums', albumRoute);
 

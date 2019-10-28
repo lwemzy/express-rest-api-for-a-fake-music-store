@@ -9,7 +9,7 @@ const port = process.env.PORT || 3001;
 // handling uncaught exception
 // should be at the top before any other code
 process.on('uncaughtException', err => {
-  console.log('UNCAUGHT_EXCEPTION! 💣 Shutting Down');
+  console.log('UNCAUGHT_EXCEPTION! 💥 Shutting Down');
   console.log(err.name, err.message);
   process.exit(1);
 });

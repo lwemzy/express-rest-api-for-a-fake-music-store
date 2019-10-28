@@ -1,12 +1,12 @@
 const express = require('express');
 
 const app = express();
+const morgan = require('morgan');
 const artistRouter = require('./routes/artistRoute');
 const albumRouter = require('./routes/albumRoute');
 const userRouter = require('./routes/userRoute');
 const songRouter = require('./routes/songRoute');
 const songReviewRouter = require('./routes/songReviewRoute');
-const morgan = require('morgan');
 const globalErrorHandler = require('./utils/globalErrorHandler');
 const globalErrorHandlerController = require('./controllers/errorController');
 

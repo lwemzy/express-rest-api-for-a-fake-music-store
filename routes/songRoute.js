@@ -1,6 +1,11 @@
 const express = require('express');
-const songsControllers = require('../controllers/songsControllers');
+
 const app = express.Router({ mergeParams: true });
+const songsControllers = require('../controllers/songsControllers');
+const songReviewRouter = require('./songReviewRoute');
+
+// nested route
+app.use('/:songId/reviews', songReviewRouter);
 
 app
   .route('/')

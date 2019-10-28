@@ -1,4 +1,4 @@
-const globalErrorHandler = require('../utils/globalErrorHandler');
+const GlobalErrorHandler = require('../utils/globalErrorHandler');
 
 // handle errors in deveopment enviroment
 const handleErrorDev = (err, res) => {
@@ -31,23 +31,23 @@ const handleErrorProd = (err, res) => {
 
 // handle duplicate fileds in sequelize
 const unquieConstraintErrorHandler = error => {
-  const message = error.errors[0].message;
-  return new globalErrorHandler(message, 400);
+  const { message } = error.errors[0];
+  return new GlobalErrorHandler(message, 400);
 };
 
 // handle sequelize validation errors
 const validationErrorHandler = error => {
   const field = error.errors[0].instance.email;
   const message = [field, error.errors[0].message];
-  return new globalErrorHandler(message.join(', '), 400);
+  return new GlobalErrorHandler(message.join(', '), 400);
 };
 
 // handling jwt token errors
 
 const invalidTokenHandler = () =>
-  new globalErrorHandler(`Invalid JWT token`, 401);
+  new GlobalErrorHandler(`Invalid JWT token`, 401);
 
-const tokenExpiredHandler = () => new globalErrorHandler(`Expired Token`, 401);
+const tokenExpiredHandler = () => new GlobalErrorHandler(`Expired Token`, 401);
 
 module.exports = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
