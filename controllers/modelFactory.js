@@ -1,6 +1,12 @@
-const { Op } = require('sequelize');
 const catchAsync = require('../utils/cathcAsyncHandler');
 const GlobalErrorHandler = require('../utils/globalErrorHandler');
+const {
+  AdvancedSerch,
+  Sort,
+  PagePaginate,
+  FieldLimiting
+} = require('../utils/apiFeatures');
+const { song } = require('../models');
 
 const mapManyToMany = async obj => {
   const { item, model, throughModel, model2, options, newItem, next } = {
@@ -68,6 +74,11 @@ exports.newManyToManyItem = (model, model2, throughModel, options) =>
 
 exports.findItem = (model, options = {}) =>
   catchAsync(async (req, res, next) => {
+    // TODO
+    // Work on Nested Item Bug
+    // check is req.params has albumId
+    // check if song with that id exists
+
     const item = await model.findByPk(req.params.id, options);
     if (!item) {
       return next(new GlobalErrorHandler(`No Item found`, 404));
@@ -95,78 +106,56 @@ exports.allItems = (model, options = {}) =>
     // const filter = JSON.parse(querryString);
 
     // implementing nested routing
-    if (req.params.albumId) {
-      querryParams.where = { albumId: req.params.albumId, ...querryObj };
-    } else if (req.params.songId) {
-      querryParams.where = { songId: req.params.songId, ...querryObj };
-    } else {
-      Object.assign(querryParams.where, querryObj);
-    }
 
-    // console.log(querryParams);
+    if (Object.keys(req.params).length < 2) {
+      if (req.params.albumId) {
+        querryParams.where = { albumId: req.params.albumId, ...querryObj };
+      } else if (req.params.songId) {
+        querryParams.where = { songId: req.params.songId, ...querryObj };
+      } else {
+        querryParams.where = querryObj;
+      }
+    } else {
+      // if (req.params.albumId) {
+      // TODO
+      // check if album exists
+
+      // console.log(req.params);
+
+      const item = await song.findAll({
+        where: { albumId: req.params.albumId }
+      });
+      if (item) {
+        querryParams.where = { songId: req.params.songId, ...querryObj };
+      } else {
+        return next(new GlobalErrorHandler('Album Not Found', 404));
+      }
+    }
 
     // sequelize advanced search filter
     // for gt gte lt lte
     // { where: { id: { [Op.gt]: 2 } } }
     // where: { id: { [Op.gte]: '2', [Op.lt]: '5' } }
-
-    Object.keys(querryObj).forEach(el => {
-      // TODO
-      // Refactor to function
-      // copy query object
-      const OBJ = Object.values(querryObj[el]);
-      if (typeof querryObj[el] === 'object') {
-        Object.keys(querryObj[el]).forEach((val, index) => {
-          if (val === 'gt') {
-            delete querryObj[el].gt;
-            Object.assign(querryObj[el], { [Op.gt]: OBJ[index] });
-          } else if (val === 'gte') {
-            delete querryObj[el].gte;
-            Object.assign(querryObj[el], { [Op.gte]: OBJ[index] });
-          } else if (val === 'lt') {
-            delete querryObj[el].lt;
-            Object.assign(querryObj[el], { [Op.lt]: OBJ[index] });
-          } else if (val === 'lte') {
-            delete querryObj[el].lte;
-            Object.assign(querryObj[el], { [Op.lte]: OBJ[index] });
-          }
-        });
-      }
-    });
-
-    Object.assign(querryParams.where, querryObj);
-
-    // querryParams.where = querryObj;
+    // ?id[lt]=5
+    AdvancedSerch({ querryObj, querryParams });
 
     // sorting
     // ?order[]=firstName&order[]=DESC
-    if (req.query.order) {
-      querryParams.order = [[...req.query.order]];
-    } else {
-      querryParams.order = [['createdAt', 'DESC']];
-    }
-
     // field limiting
-    if (req.query.fields) {
-      const fieldArray = req.query.fields.split(',');
-      querryParams.attributes = fieldArray;
-    }
-
+    // ?fields=firstName,id
     // pagination
-    if (req.query.limit && req.query.page) {
-      const limit = req.query.limit * 1 || 1;
-      const page = req.query.page * 1 || 10;
-      const offset = (page - 1) * limit;
-      querryParams = { ...querryParams, offset, limit };
-    }
+    // ?limit=3&page=1
+    querryParams = PagePaginate(FieldLimiting(Sort({ querryParams, req })));
+
+    // console.log(querryParams);
 
     const Items = await model.findAndCountAll({
       ...querryParams
     });
 
-    // if (!!!Items.rows.length) {
-    //   return next(new GlobalErrorHandler(`💥 page doesn't exist`, 404));
-    // }
+    if (!Items.rows.length) {
+      return next(new GlobalErrorHandler(`💥 page doesn't exist`, 404));
+    }
 
     res.status(200).json({
       status: 'success',
